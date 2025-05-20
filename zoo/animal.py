@@ -7,12 +7,16 @@ from .util import generate_name
 class Animal:
     name: str = field(default_factory=generate_name)
     energy: int = 100
+    max_energy: int = energy
 
     def eat(self):
         raise NotImplementedError
 
     def sleep(self):
-        raise NotImplementedError
+        self.energy = max(self.energy + 50, self.max_energy)
+
+    def can_do_action(self, cost: int):
+        return self.energy - cost > 0
 
 
 @dataclass
