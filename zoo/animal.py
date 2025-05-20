@@ -4,7 +4,7 @@ from typing import Protocol, ClassVar
 from .util import generate_name
 
 
-def action_with(energy_cost=0, fullness_cost=0, min_energy=0, min_fullness=0):
+def action_with(energy_cost=0, fullness_cost=0, min_energy=0, min_fullness=0, fatal_error=False):
     def dectorator(func):
         def inner(self, *args, **kwargs):
             if self.can_do_action(
@@ -13,6 +13,8 @@ def action_with(energy_cost=0, fullness_cost=0, min_energy=0, min_fullness=0):
                 self.energy -= energy_cost
                 self.fullness -= fullness_cost
                 func(self, *args, **kwargs)
+            elif fatal_error:
+                raise RuntimeError('Predicate fails')
         return inner
     return dectorator
 
@@ -32,6 +34,32 @@ class CanBeEaten(Protocol):
     def food_type(self):
         raise NotImplementedError
 
+    def be_consumed(self, requested: int) -> int:
+        raise NotImplementedError
+
+
+@dataclass
+class Food(CanBeEaten):
+    energy: int
+    food_type: FoodType
+
+    def be_consumed(self, requested: int) -> int:
+        energy = min(requested, self.energy)
+        self.energy -= energy
+        assert self.energy >= 0
+        return energy
+
+
+class Grass(CanBeEaten):
+    """Infinite grass source"""
+    energy: -1
+    food_type = FoodType.VEGETARIAN
+
+    @classmethod
+    def be_consumed(cls, requested: int) -> int:
+        # pylint: disable=arguments-differ
+        return requested
+
 
 @dataclass
 class Animal(CanBeEaten):
@@ -43,14 +71,31 @@ class Animal(CanBeEaten):
     max_fullness: int = fullness
 
     alive: bool = True
-    allowed_food_types: ClassVar[set[FoodType]] = field(default_factory=set)
+    food_value: int = 100
+    allowed_food_types: ClassVar[set[FoodType]] = {}
     food_type: ClassVar[FoodType] = FoodType.MEAT
 
-    def eat(self, food: CanBeEaten):
+    def eat(self, food: CanBeEaten) -> int:
+        """Eat some food, returns fullness restored by eating"""
+        fullness_restored = 0
         if self.can_eat(food):
-            # TODO
-            pass
-        raise NotImplementedError
+            fullness_restored = food.be_consumed(self.max_fullness - self.fullness)
+            self.fullness += fullness_restored
+        return fullness_restored
+
+    def be_consumed(self, requested: int):
+        if not requested:
+            return 0
+        if self.alive:
+            self.die()
+        consumed_value = min(requested, self.food_value)
+        self.food_value -= consumed_value
+        return consumed_value
+
+    def die(self):
+        self.alive = False
+        self.energy = 0
+        self.fullness = 0
 
     def can_eat(self, food: CanBeEaten) -> bool:
         return food.food_type in self.allowed_food_types
@@ -71,6 +116,10 @@ class Animal(CanBeEaten):
 @dataclass
 class Herbivore(Animal):
     allowed_food_types = {FoodType.VEGETARIAN}
+
+    def eat_grass(self):
+        """Eat from the endless zoo grass"""
+        self.eat(Grass)
 
 
 @dataclass
