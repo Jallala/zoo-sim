@@ -6,7 +6,7 @@ from .util import generate_name
 @dataclass
 class Visitor:
     name: str = field(default_factory=generate_name)
-    age: str
+    age: int
 
     def feed(self, animal: Animal):
         raise NotImplementedError
