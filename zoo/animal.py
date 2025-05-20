@@ -58,8 +58,14 @@ class Animal(CanBeEaten):
     def sleep(self):
         self.energy = max(self.energy + 50, self.max_energy)
 
-    def can_do_action(self, energy_cost: int = 0, fullness_cost: int = 0, min_energy=0, min_fullness=0) -> bool:
-        return self.energy - energy_cost > 0 and self.fullness - fullness_cost > 0
+    def can_do_action(
+            self, energy_cost: int = 0, fullness_cost: int = 0,
+            min_energy: int = 0, min_fullness: int = 0) -> bool:
+        minimums_are_met = min_energy > self.energy or min_fullness > self.fullness
+        costs_does_not_bring_values_below_zero = (
+            self.energy - energy_cost > 0 and self.fullness - fullness_cost > 0)
+
+        return minimums_are_met and costs_does_not_bring_values_below_zero
 
 
 @dataclass
