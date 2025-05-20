@@ -3,6 +3,15 @@ from dataclasses import dataclass, field
 from .util import generate_name
 
 
+def action_with(cost):
+    def dectorator(func):
+        def inner(self, *args, **kwargs):
+            if self.can_do_action(cost):
+                self.energy -= cost
+                func(self, *args, **kwargs)
+    return dectorator
+
+
 @dataclass
 class Animal:
     name: str = field(default_factory=generate_name)
