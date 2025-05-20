@@ -1,10 +1,11 @@
 from dataclasses import dataclass, field
 from .animal import Animal
+from .util import generate_name
 
 
 @dataclass
 class Visitor:
-    name: str
+    name: str = field(default_factory=generate_name)
     age: str
 
     def feed(self, animal: Animal):

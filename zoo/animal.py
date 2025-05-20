@@ -30,4 +30,4 @@ class Omniore(Carnivore, Herbivore):
     pass
 
 
-__ALL__ = [Animal, Carnivore, Herbivore, Omniore]
+__all__ = ['Animal', 'Carnivore', 'Herbivore', 'Omniore']
