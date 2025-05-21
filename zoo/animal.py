@@ -101,6 +101,7 @@ class Animal(CanBeEaten):
 
     def eat(self, food: CanBeEaten) -> int:
         """Eat some food, returns fullness restored by eating"""
+        assert self is not food, 'Should never try to eat it self.'
         fullness_restored = 0
         if self.can_eat(food):
             fullness_restored = food.be_consumed(
@@ -178,6 +179,7 @@ class Carnivore(Animal):
 
     def hunt(self, other: Animal):
         _LOGGER.info(f'%s hunts %s', self, other)
+        assert self is not other, 'Should never call hunt for self'
         if self.is_hungry():
             self.eat(other)
 
