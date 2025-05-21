@@ -2,6 +2,7 @@ import random
 
 
 from .animal import Herbivore, Carnivore, Omnivore
+from .lion import Lion
 from .simulation import Simulation
 from .visitor import Visitor
 
@@ -15,7 +16,7 @@ if __name__ == '__main__':
 
     sim = Simulation(
         carnivores=[Carnivore(max_fullness=200, max_age=random.randint(50, 200))
-                    for _ in range(10)],
+                    for _ in range(10)] + [Lion() for _ in range(2)],
         herbivores=[Herbivore(food_value=50) for _ in range(500)],
         omnivores=[Omnivore(food_value=50) for _ in range(200)],
         visitors=[Visitor() for _ in range(100)]
