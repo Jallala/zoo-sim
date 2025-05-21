@@ -4,7 +4,7 @@ import random
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import Protocol, ClassVar
-from .util import generate_name
+from .util import generate_name, gauss_with_min
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -26,10 +26,6 @@ def action_with(energy_cost=0, fullness_cost=0, min_energy=0, min_fullness=0, or
                 or_else(self)
         return inner
     return dectorator
-
-
-def generate_age() -> int:
-    return random.randint(50, 100)
 
 
 class FoodType(Enum):
@@ -88,7 +84,7 @@ def _die(obj: 'Animal'):
 class Animal(CanBeEaten):
     name: str = field(default_factory=generate_name)
     age: int = 0
-    max_age: int = field(default_factory=generate_age)
+    max_age: int = field(default_factory=gauss_with_min(100, 10))
     energy: int = 100
     max_energy: int = energy
     tired_when: int = 50

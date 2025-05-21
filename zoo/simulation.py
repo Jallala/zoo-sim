@@ -2,7 +2,7 @@ import random
 import logging
 
 from dataclasses import dataclass, field
-from .animal import Animal, Carnivore, Herbivore, Omnivore, Food, FoodType
+from .animal import Animal, Carnivore, Herbivore, Omnivore, Food
 from .visitor import Visitor
 
 
@@ -14,10 +14,8 @@ class Simulation:
     visitors: list[Visitor] = field(default_factory=list)
     time: int = 0
 
-    def run(self):
-        raise NotImplementedError
-
     def tick(self):
+        # TODO Refactor
         logging.getLogger(__name__).debug('%s', self)
         self.time += 1
         self.carnivores = self.do_tics_for(self.carnivores)
@@ -27,6 +25,8 @@ class Simulation:
         all_animals = [*self.carnivores, *self.herbivores, *self.omnivores]
         if not all_animals:
             return
+
+        # Visitors have chance to feed once per tick
         for visitor in self.visitors:
             visitor: Visitor = visitor
             if abs(random.gauss()) > 1.2:
@@ -34,7 +34,7 @@ class Simulation:
                 food = Food(int(random.uniform(10, 50)),
                             food_type=random.choice(list(animal.allowed_food_types)))
                 visitor.feed(animal, food)
-        # TODO Refactor
+
         for carnivore in self.carnivores:
             carnivore: Carnivore = carnivore
             if carnivore.is_hungry():
@@ -50,7 +50,8 @@ class Simulation:
 
         for omnivore in self.omnivores:
             if omnivore.is_hungry():
-                if abs(random.gauss()) > 1.2 and self.carnivores and self.herbivores:
+                if self.carnivores and self.herbivores and abs(random.gauss()) > 1.2:
+                    # Chance for omnivore to hunt
                     random_pray = self.pick_random(
                         [*self.herbivores, *self.carnivores])
                     omnivore.hunt(random_pray)
