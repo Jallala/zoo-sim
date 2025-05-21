@@ -1,8 +1,13 @@
+import logging
+import random
+
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import Protocol, ClassVar
 from .util import generate_name
 
+
+_LOGGER = logging.getLogger(__name__)
 
 def action_with(energy_cost=0, fullness_cost=0, min_energy=0, min_fullness=0, fatal_error=False):
     def dectorator(func):
@@ -18,6 +23,8 @@ def action_with(energy_cost=0, fullness_cost=0, min_energy=0, min_fullness=0, fa
         return inner
     return dectorator
 
+def generate_age() -> int:
+    return random.randint(50, 100)
 
 class FoodType(Enum):
     INEDABLE = auto()
@@ -26,13 +33,8 @@ class FoodType(Enum):
 
 
 class CanBeEaten(Protocol):
-    @property
-    def energy(self):
-        raise NotImplementedError
-
-    @property
-    def food_type(self):
-        raise NotImplementedError
+    energy: int
+    food_type: FoodType
 
     def be_consumed(self, requested: int) -> int:
         raise NotImplementedError
@@ -65,11 +67,12 @@ class Grass(CanBeEaten):
 class Animal(CanBeEaten):
     name: str = field(default_factory=generate_name)
     age: int = 0
+    max_age: int = field(default_factory=generate_age)
     energy: int = 100
     max_energy: int = energy
     fullness: int = 100
     max_fullness: int = fullness
-
+    
     alive: bool = True
     food_value: int = 100
     allowed_food_types: ClassVar[set[FoodType]] = {}
@@ -81,6 +84,7 @@ class Animal(CanBeEaten):
         if self.can_eat(food):
             fullness_restored = food.be_consumed(self.max_fullness - self.fullness)
             self.fullness += fullness_restored
+        _LOGGER.debug('%s ate %s that restored %i fullneess', self, food, fullness_restored)
         return fullness_restored
 
     def be_consumed(self, requested: int):
@@ -93,9 +97,12 @@ class Animal(CanBeEaten):
         return consumed_value
 
     def die(self):
+        assert self.alive
+        reason = 'of starvation' if self.fullness <= 0 else 'of old age'
         self.alive = False
         self.energy = 0
         self.fullness = 0
+        _LOGGER.debug('%s died %s', self, reason)
 
     def can_eat(self, food: CanBeEaten) -> bool:
         return food.food_type in self.allowed_food_types
@@ -112,6 +119,13 @@ class Animal(CanBeEaten):
 
         return minimums_are_met and costs_does_not_bring_values_below_zero
 
+    def do_tick(self):
+        self.energy -= 10
+        self.fullness -= 10
+        self.age += 1
+        if self.fullness < 0 or self.age > self.max_age:
+            self.die()
+
 
 @dataclass
 class Herbivore(Animal):
@@ -121,6 +135,10 @@ class Herbivore(Animal):
         """Eat from the endless zoo grass"""
         self.eat(Grass)
 
+    def do_tick(self):
+        if self.fullness < 50:
+            self.eat_grass()
+        super().do_tick()
 
 @dataclass
 class Carnivore(Animal):
@@ -128,8 +146,8 @@ class Carnivore(Animal):
 
 
 @dataclass
-class Omniore(Carnivore, Herbivore):
+class Omnivore(Carnivore, Herbivore):
     allowed_food_types = {FoodType.MEAT, FoodType.VEGETARIAN}
 
 
-__all__ = ['Animal', 'Carnivore', 'Herbivore', 'Omniore']
+__all__ = ['Animal', 'Carnivore', 'Herbivore', 'Omnivore']
