@@ -18,17 +18,16 @@ class Simulation:
         # TODO Refactor
         logging.getLogger(__name__).debug('%s', self)
         self.time += 1
-        self.carnivores = self.do_tics_for(self.carnivores)
-        self.herbivores = self.do_tics_for(self.herbivores)
-        self.omnivores = self.do_tics_for(self.omnivores)
+        self.carnivores: list[Carnivore] = self.do_tics_for(self.carnivores)
+        self.herbivores: list[Herbivore] = self.do_tics_for(self.herbivores)
+        self.omnivores: list[Omnivore] = self.do_tics_for(self.omnivores)
+        if not self.has_animals_that_are_still_alive():
+            return
 
         all_animals = [*self.carnivores, *self.herbivores, *self.omnivores]
-        if not all_animals:
-            return
 
         # Visitors have chance to feed once per tick
         for visitor in self.visitors:
-            visitor: Visitor = visitor
             if abs(random.gauss()) > 1.2:
                 animal = random.choice(all_animals)
                 food = Food(int(random.uniform(10, 50)),
@@ -36,7 +35,6 @@ class Simulation:
                 visitor.feed(animal, food)
 
         for carnivore in self.carnivores:
-            carnivore: Carnivore = carnivore
             if carnivore.is_hungry():
                 targets = [*self.herbivores, *self.omnivores]
                 if not targets:
