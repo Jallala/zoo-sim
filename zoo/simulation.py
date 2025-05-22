@@ -2,7 +2,7 @@ import random
 import logging
 
 from dataclasses import dataclass, field
-from .animals import Animal, Carnivore, Herbivore, Omnivore, Food
+from .animals import Animal, Carnivore, Herbivore, Omnivore
 from .visitor import Visitor
 
 
@@ -29,38 +29,44 @@ class Simulation:
         # Visitors have chance to feed once per tick
         for visitor in self.visitors:
             if abs(random.gauss()) > 1.2:
-                animal = random.choice(all_animals)
+                animal: Animal = self.pick_random(all_animals)
                 visitor.feed(animal)
 
         for carnivore in self.carnivores:
             if carnivore.is_hungry():
-                targets = [*self.herbivores, *self.omnivores]
-                if not targets:
-                    break
-                random_pray = self.pick_random(targets)
-                carnivore.hunt(random_pray)
-                try:
-                    self.herbivores.remove(random_pray)
-                except ValueError:
-                    self.omnivores.remove(random_pray)
+                if self.carnivores or self.omnivores:
+                    random_pray = self.pick_random(
+                        self.herbivores, self.omnivores)
+                    carnivore.hunt(random_pray)
+                    self.remove(random_pray)
 
         for omnivore in self.omnivores:
             if omnivore.is_hungry():
-                if self.carnivores and self.herbivores and abs(random.gauss()) > 1.2:
+                if (self.carnivores or self.herbivores) and abs(random.gauss()) > 1.2:
                     # Chance for omnivore to hunt
                     random_pray = self.pick_random(
-                        [*self.herbivores, *self.carnivores])
+                        self.herbivores, self.carnivores)
                     omnivore.hunt(random_pray)
-                    try:
-                        self.herbivores.remove(random_pray)
-                    except ValueError:
-                        self.carnivores.remove(random_pray)
+                    self.remove(random_pray)
                 else:
                     omnivore.eat_grass()
 
+    def remove(self, animal: Animal):
+        for animal_seq in (self.carnivores, self.herbivores, self.omnivores):
+            try:
+                animal_seq.remove(animal)
+                break
+            except ValueError:
+                pass
+        else:
+            raise ValueError(f'Cannot find {animal} in {self}')
+
     @staticmethod
-    def pick_random(seq):
-        return random.choice(seq)
+    def pick_random(*args):
+        args = [arg for arg in args if arg]
+        if len(args) == 1:
+            return random.choice(args[0])
+        return random.choice([item for arg in args for item in arg])
 
     def do_tics_for(self, animals: list[Animal]):
         for animal in animals:
