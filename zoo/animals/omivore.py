@@ -12,3 +12,6 @@ _LOGGER = logging.getLogger(__name__)
 @dataclass
 class Omnivore(Carnivore, Herbivore):
     allowed_food_types = {FoodType.MEAT, FoodType.VEGETARIAN}
+
+
+print(Omnivore(name="Test"))

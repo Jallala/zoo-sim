@@ -13,6 +13,9 @@ class Simulation:
     omnivores: list[Omnivore] = field(default_factory=list)
     visitors: list[Visitor] = field(default_factory=list)
     time: int = 0
+    times_fed: int = 0
+    times_pet: int = 0
+    times_hunted: int = 0
 
     def tick(self):
         # TODO Refactor
@@ -30,13 +33,19 @@ class Simulation:
         for visitor in self.visitors:
             if abs(random.gauss()) > 1.2:
                 animal: Animal = self.pick_random(all_animals)
+                self.times_fed += 1
                 visitor.feed(animal)
+            if abs(random.gauss()) > 1.4:
+                animal: Animal = self.pick_random(all_animals)
+                self.times_pet += 1
+                visitor.pet(animal)
 
         for carnivore in self.carnivores:
             if carnivore.is_hungry():
-                if self.carnivores or self.omnivores:
+                if self.herbivores or self.omnivores:
                     random_pray = self.pick_random(
                         self.herbivores, self.omnivores)
+                    self.times_hunted += 1
                     carnivore.hunt(random_pray)
                     self.remove(random_pray)
 
@@ -46,6 +55,7 @@ class Simulation:
                     # Chance for omnivore to hunt
                     random_pray = self.pick_random(
                         self.herbivores, self.carnivores)
+                    self.times_hunted += 1
                     omnivore.hunt(random_pray)
                     self.remove(random_pray)
                 else:

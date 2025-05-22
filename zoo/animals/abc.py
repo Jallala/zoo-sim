@@ -120,3 +120,6 @@ class Animal(CanBeEaten):
             return
         if self.is_tired():
             self.sleep()
+
+    def __str__(self):
+        return f'{self.__class__.__name__} {self.name!r} ({self.age})'
