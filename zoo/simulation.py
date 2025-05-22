@@ -30,9 +30,7 @@ class Simulation:
         for visitor in self.visitors:
             if abs(random.gauss()) > 1.2:
                 animal = random.choice(all_animals)
-                food = Food(int(random.uniform(10, 50)),
-                            food_type=random.choice(list(animal.allowed_food_types)))
-                visitor.feed(animal, food)
+                visitor.feed(animal)
 
         for carnivore in self.carnivores:
             if carnivore.is_hungry():
