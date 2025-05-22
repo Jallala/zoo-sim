@@ -48,14 +48,15 @@ class Bear(Omnivore):
 
     def eat(self, food):
         if self.is_hibernating:
-            return 0
-        super().eat(food)
+            return None
+        return super().eat(food)
 
     def do_tick(self):
         super().do_tick()
         if self.alive:
-            if self.is_hibernating and self.is_hungry:
+            if self.is_hibernating and self.is_hungry():
                 self.wake_up()
             else:
-                if random.randint(0, 20) > 10:
+                close_to_max_fullness = 20 > self.max_fullness - self.fullness
+                if close_to_max_fullness and random.randint(0, 20) > 10:
                     self.hibernate()
