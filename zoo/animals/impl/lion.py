@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
-from .animals import action_with, Carnivore
-from .util import gauss_with_min
 
+from zoo.util import gauss_with_min
+from .. import action_with, Carnivore
 
 @dataclass
 class Lion(Carnivore):

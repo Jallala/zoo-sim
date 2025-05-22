@@ -1,8 +1,7 @@
 import random
 
 
-from .animals import Herbivore, Carnivore, Omnivore
-from .lion import Lion
+from .animals import Herbivore, Carnivore, Omnivore, Lion, Bear
 from .simulation import Simulation
 from .visitor import Visitor
 

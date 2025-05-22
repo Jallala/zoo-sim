@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from .animals import Omnivore
+from .. import Omnivore
 
 
 @dataclass
