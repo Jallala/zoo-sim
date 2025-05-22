@@ -1,7 +1,11 @@
+import logging
+import random
 from dataclasses import dataclass, field
 
 from zoo.util import gauss_with_min
 from .. import action_with, Carnivore
+
+_LOGGER = logging.getLogger(__name__)
 
 @dataclass
 class Lion(Carnivore):
@@ -9,8 +13,9 @@ class Lion(Carnivore):
 
     @action_with(energy_cost=10)
     def roar(self):
-        print('Roar!')
+        _LOGGER.info('%s roars!', self)
 
     def do_tick(self):
         super().do_tick()
-        self.roar()
+        if random.randint(0, 20) < 5:
+            self.roar()
