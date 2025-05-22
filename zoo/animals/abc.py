@@ -1,11 +1,10 @@
 import logging
-import random
 
 from dataclasses import dataclass, field
-from enum import Enum, auto
-from typing import Protocol, ClassVar
-from .util import generate_name, gauss_with_min
+from typing import ClassVar
 
+from zoo.util import generate_name, gauss_with_min
+from .food import CanBeEaten, FoodType
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -26,44 +25,6 @@ def action_with(energy_cost=0, fullness_cost=0, min_energy=0, min_fullness=0, or
                 or_else(self)
         return inner
     return dectorator
-
-
-class FoodType(Enum):
-    INEDABLE = auto()
-    VEGETARIAN = auto()
-    MEAT = auto()
-
-
-class CanBeEaten(Protocol):
-    energy: int
-    food_type: FoodType
-
-    def be_consumed(self, requested: int) -> int:
-        raise NotImplementedError
-
-
-@dataclass
-class Food(CanBeEaten):
-    energy: int
-    food_type: FoodType
-
-    def be_consumed(self, requested: int) -> int:
-        energy = min(requested, self.energy)
-        self.energy -= energy
-        assert self.energy >= 0
-        return energy
-
-
-class Grass(CanBeEaten):
-    """Infinite grass source"""
-    energy: -1
-    energy_per_action = 20
-    food_type = FoodType.VEGETARIAN
-
-    @classmethod
-    def be_consumed(cls, requested: int) -> int:
-        # pylint: disable=arguments-differ
-        return min(requested, cls.energy_per_action)
 
 
 def _die(obj: 'Animal'):
@@ -87,10 +48,12 @@ class Animal(CanBeEaten):
     max_age: int = field(default_factory=gauss_with_min(100, 10))
     energy: int = 100
     max_energy: int = energy
+    energy_consumption_per_tick: int = 10
     tired_when: int = 50
 
     fullness: int = 100
     max_fullness: int = fullness
+    hunger_per_tick: int = 10
     hungry_when: int = 20
 
     alive: bool = True
@@ -150,43 +113,10 @@ class Animal(CanBeEaten):
 
     def do_tick(self):
         self.age += 1
-        self.energy -= 10
-        self.fullness -= 10
+        self.energy -= self.energy_consumption_per_tick
+        self.fullness -= self.hunger_per_tick
         if self.should_die():
             self.die()
             return
         if self.is_tired():
             self.sleep()
-
-
-@dataclass
-class Herbivore(Animal):
-    allowed_food_types = {FoodType.VEGETARIAN}
-
-    def eat_grass(self):
-        """Eat from the endless zoo grass"""
-        self.eat(Grass)
-
-    def do_tick(self):
-        if self.is_hungry():
-            self.eat_grass()
-        super().do_tick()
-
-
-@dataclass
-class Carnivore(Animal):
-    allowed_food_types = {FoodType.MEAT}
-
-    def hunt(self, other: Animal):
-        _LOGGER.info(f'%s hunts %s', self, other)
-        assert self is not other, 'Should never call hunt for self'
-        if self.is_hungry():
-            self.eat(other)
-
-
-@dataclass
-class Omnivore(Carnivore, Herbivore):
-    allowed_food_types = {FoodType.MEAT, FoodType.VEGETARIAN}
-
-
-__all__ = ['Animal', 'Carnivore', 'Herbivore', 'Omnivore']

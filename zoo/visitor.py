@@ -1,10 +1,11 @@
 import logging
 
 from dataclasses import dataclass, field
-from .animal import Animal, Food
+from .animals import Animal, Food
 from .util import generate_name
 
 _LOGGER = logging.getLogger(__name__)
+
 
 @dataclass
 class Visitor:
@@ -13,4 +14,5 @@ class Visitor:
 
     def feed(self, animal: Animal, food: Food):
         restored = animal.eat(food)
-        _LOGGER.debug('Visitor %r fed %s with %s that restored %s fullness', self.name, animal, food, restored)
+        _LOGGER.debug('Visitor %r fed %s with %s that restored %s fullness',
+                      self.name, animal, food, restored)

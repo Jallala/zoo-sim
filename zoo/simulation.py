@@ -2,7 +2,7 @@ import random
 import logging
 
 from dataclasses import dataclass, field
-from .animal import Animal, Carnivore, Herbivore, Omnivore, Food
+from .animals import Animal, Carnivore, Herbivore, Omnivore, Food
 from .visitor import Visitor
 
 

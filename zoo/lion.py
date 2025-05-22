@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from .animal import action_with, Carnivore
+from .animals import action_with, Carnivore
 from .util import gauss_with_min
 
 
